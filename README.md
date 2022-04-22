@@ -54,7 +54,7 @@
       5. 供给值计算
          1. 导出`sh_main_grid`属性表`sh_main_grid_attr`,利用pandas操作该属性表,计算供给值
             1. 
-         2. `ces_supply` = (`green_area_score` + `ndvi`)*`green_type_weight`
+         2. `ces_supply` = (`green_area_score` + `ndvi`)*`green_type_weight` 
          
    2. **需求的区域是所有包含居民区的网格**
       1. 为`sh_main_grid`添加字段`is_demand`
