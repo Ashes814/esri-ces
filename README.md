@@ -18,7 +18,7 @@
    1. 上海主城区面要素(`sh_main.shp`)
    2. 上海主城区乡镇面要素(`sh_main_town.shp`)
    3. 带有各种人口及房价信息的居民建筑物轮廓面要素(`sh_main_building.shp`)
-   4. 上海主城区的lucc数据(`sh_main_lucc.shp`)
+   4. 上海主城区的lucc水体数据(`sh_main_lucc_water.shp`)
    5. 上海主城区5m乘5m蓝绿空间类型(`sh_main_green.shp`)
 4. **栅格数据**
    1. 上海主城区ndvi(`rsh_main_ndvi.tif`)
@@ -43,27 +43,38 @@
       1. 为`sh_main_grid`添加字段`is_supply`
          1. 如果`sh_main_grid`与`sh_main_green`相交,则为1,否则为0
       2. 计算每个网格包含的蓝绿空间面积
-         1. 利用`sh_main_grid`算出每个网格内`rsh_main_green.tif`的面积,添加到字段`green_area`(如果出现一个网格中存在不同的蓝绿空间类型,则取面积最大的那个)
+         1. 利用`sh_main_grid`算出每个网格内`rsh_main_green.tif`中各个绿地类型的面积,添加到字段`green_area`
          2. 将字段`green_area`除以网格面积`area`得到字段`green_area_score`即该网格蓝绿空间的面积比重(0-1)
-         3. 利用`sh_main_grid`得到每个网格内`rsh_main_green.tif`的类型,添加到字段`green_type`(如果出现一个网格中存在不同的蓝绿空间类型,则取面积最大的那个)
+         3. 利用`sh_main_grid`得到每个网格内`rsh_main_green.tif`的类型,添加到字段`green_type`
          4. 为`green_type`赋权重`green_type_weight`
       3. 计算每个网格中ndvi的均值
          1. 利用`sh_main_grid`算出每个网格内`rsh_main_ndvi`的平均值,添加到字段`ndvi`
-      4. 计算每个需求网格获取的供给(0-1)
-         1. 遍历所有需求网格,建立15分钟步行缓冲区
+      4. 计算水体指标
+         1. 计算`sh_main_grid`中每个网格与最近的水体的距离`sh_main_lucc_water`添加到字段`water_distance`
+      5. 供给值计算
+         1. 导出`sh_main_grid`属性表`sh_main_grid_attr`,利用pandas操作该属性表,计算供给值
+            1. 
+         2. `ces_supply` = (`green_area_score` + `ndvi`)*`green_type_weight`
          
    2. **需求的区域是所有包含居民区的网格**
       1. 为`sh_main_grid`添加字段`is_demand`
          1. 如果`sh_main_grid`与`sh_main_building`相交,则为1,否则为0
       2. 计算每个网格中的人口与房价信息
-         1. 利用`sh_main_grid`与`rsh_main_pop.tif`计算每个网格内的平均人口密度,将平均人口密度*网格面积,得到人口数量字段`pop`
+         1. 利用`sh_main_grid`与`rsh_main_pop.tif`计算每个网格内的平均人口密度字段`pop_den`,将平均人口密度*网格面积,得到人口数量字段`pop`
          2. 同上,计算男性`male`,女性`female`,外来`for`,不同年龄段`14minus`, `64minus`, `65plus`的人口数量
          3. 利用`sh_main_grid`与`rsh_main_price.tif`计算每个网格内的平均房价,得到平均房价字段`price`
-  
-      3.  计算每个网格中的房价均值
-      4.  以每个网格点为中心,绘制15分钟步行缓冲区
-      5.  统计15分钟步行缓冲区内的供给总量
-      6.  以该总量作为该网格点收到的供给总量
+      3. 建立`cross tabulation`计算需求
+         1. 计算`sh_main_grid`每个需求网格到最近的`sh_main_green`要素的距离,得到字段`ces_distance`
+         2. `sh_main_grid`每个需求网格的人口密度,即字段`pop_den`
+         3. 导出`sh_main_grid`属性表`sh_main_grid_attr`
+         4. 在属性表中进行判断,`pop_den`,`ces_distance`分别位于哪个区间段,赋分0-5,得到字段`ces_demand_raw`
+         5. 标准化`ces_demand_raw`,形成字段`ces_demand_std`
+      4. 利用`ces_demand_std`输出ces demand地图
+
 ### 3. 计算供需匹配
+      1.  计算每个网格中的房价均值
+      2.  以每个网格点为中心,绘制15分钟步行缓冲区
+      3.  统计15分钟步行缓冲区内的供给总量
+      4.  以该总量作为该网格点收到的供给总量
 
 ## Arcpy 
