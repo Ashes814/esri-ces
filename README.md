@@ -56,7 +56,8 @@
             2. 0-1标准化`green_area`,得到`green_area_std`
             3. 0-1标准化`ndvi`,得到`ndvi_std`
             4. 处理`green_type`, 分别附上权重`green_type_weight`
-         2. `ces_supply` = (`green_area_score` + `ndvi`)*`green_type_weight` 
+            5. `water_distance`>1000等于9999999,用logistic函数映射得到字段`water_distance_std`(0-1)
+         2. `ces_supply` = (`green_area_std` + `ndvi`)*`green_type_weight` + `water_distance_std`*0.2
          
    2. **需求的区域是所有包含居民区的网格**
       1. 为`sh_main_grid`添加字段`is_demand`
@@ -74,9 +75,7 @@
       4. 利用`ces_demand_std`输出ces demand地图
 
 ### 3. 计算供需匹配
-      1.  计算每个网格中的房价均值
-      2.  以每个网格点为中心,绘制15分钟步行缓冲区
-      3.  统计15分钟步行缓冲区内的供给总量
-      4.  以该总量作为该网格点收到的供给总量
+   1. 
+
 
 ## Arcpy 
