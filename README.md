@@ -22,7 +22,7 @@
    5. 上海主城区5m乘5m蓝绿空间类型(`sh_main_green.shp`)
 4. **栅格数据**
    1. 上海主城区ndvi(`rsh_main_ndvi.tif`)
-   2. 上海主城区5m乘5m蓝绿空间类型(`rsh_main_green.tif`)
+   2. 上海主城区5m乘5m蓝绿空间类型(`rsh_main_green_type.tif`)
    3. 上海主城区居民人口密度(`rsh_main_pop.tif`)
    4. 上海主城区居民男性人口密度(`rsh_main_male.tif`)
    5. 上海主城区居民女性人口密度(`rsh_main_female.tif`)
@@ -31,6 +31,7 @@
    8. 上海主城区居民15-64岁人口密度(`rsh_main_64.tif`)
    9. 上海主城区居民65岁以上人口密度(`rsh_main_65plus.tif`)
    10. 上海主城区房价(`rsh_main_price.tif`)
+   11. 上海主城区蓝绿空间要素面积(`rsh_main_green_area.tif`)
 
 ## 处理流程
 ### 1. 创建格网分析单元
@@ -42,18 +43,19 @@
    1. **供给的区域是所有包含蓝绿空间的网格**
       1. 为`sh_main_grid`添加字段`is_supply`
          1. 如果`sh_main_grid`与`sh_main_green`相交,则为1,否则为0
-      2. 计算每个网格包含的蓝绿空间面积
-         1. 利用`sh_main_grid`算出每个网格内`rsh_main_green.tif`中各个绿地类型的面积,添加到字段`green_area`
-         2. 将字段`green_area`除以网格面积`area`得到字段`green_area_score`即该网格蓝绿空间的面积比重(0-1)
-         3. 利用`sh_main_grid`得到每个网格内`rsh_main_green.tif`的类型,添加到字段`green_type`
-         4. 为`green_type`赋权重`green_type_weight`
+      2. 计算每个网格的蓝绿空间面积
+         1. 利用`sh_main_grid`得到每个网格内`rsh_main_green_area.tif`中各个绿地类型的面积,添加到字段`green_area`
+         2. 利用`sh_main_grid`得到每个网格内`rsh_main_green_type.tif`的类型,添加到字段`green_type`
       3. 计算每个网格中ndvi的均值
          1. 利用`sh_main_grid`算出每个网格内`rsh_main_ndvi`的平均值,添加到字段`ndvi`
       4. 计算水体指标
          1. 计算`sh_main_grid`中每个网格与最近的水体的距离`sh_main_lucc_water`添加到字段`water_distance`
       5. 供给值计算
          1. 导出`sh_main_grid`属性表`sh_main_grid_attr`,利用pandas操作该属性表,计算供给值
-            1. 
+            1. 处理的字段包括`id`, `is_supply`(0, 1), `green_area`(平方米), `green_type`(1-5),`ndvi`(-1-1),`water_distance`(0-99999)
+            2. 0-1标准化`green_area`,得到`green_area_std`
+            3. 0-1标准化`ndvi`,得到`ndvi_std`
+            4. 处理`green_type`, 分别附上权重`green_type_weight`
          2. `ces_supply` = (`green_area_score` + `ndvi`)*`green_type_weight` 
          
    2. **需求的区域是所有包含居民区的网格**
