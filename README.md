@@ -15,23 +15,23 @@
 1. **统一CRS**:`EPSG:32651`
 2. **修复几何问题**:`Fix Geometery`
 3. **矢量数据**
-   1. 上海主城区面要素(`sh_main.shp`)
-   2. 上海主城区乡镇面要素(`sh_main_town.shp`)
-   3. 带有各种人口及房价信息的居民建筑物轮廓面要素(`sh_main_building.shp`)
-   4. 上海主城区的lucc水体数据(`sh_main_lucc_water.shp`)
-   5. 上海主城区5m乘5m蓝绿空间类型(`sh_main_green.shp`)
+   1. 上海主城区面要素(`sh_main.shp`) ok
+   2. 上海主城区乡镇面要素(`sh_main_town.shp`) ok
+   3. 带有各种人口及房价信息的居民建筑物轮廓面要素(`sh_main_building_cens.shp`) ok
+   4. 上海主城区的lucc水体数据(`sh_main_lucc_water.shp`) ok
+   5. 上海主城区5m乘5m蓝绿空间类型(`sh_main_green.shp`) ok
 4. **栅格数据**
-   1. 上海主城区ndvi(`rsh_main_ndvi.tif`)
-   2. 上海主城区5m乘5m蓝绿空间类型(`rsh_main_green_type.tif`)
-   3. 上海主城区居民人口密度(`rsh_main_pop.tif`)
-   4. 上海主城区居民男性人口密度(`rsh_main_male.tif`)
-   5. 上海主城区居民女性人口密度(`rsh_main_female.tif`)
-   6. 上海主城区居民外来人口密度(`rsh_main_for.tif`)
-   7. 上海主城区居民0-14岁人口密度(`rsh_main_14.tif`)
-   8. 上海主城区居民15-64岁人口密度(`rsh_main_64.tif`)
-   9. 上海主城区居民65岁以上人口密度(`rsh_main_65plus.tif`)
-   10. 上海主城区房价(`rsh_main_price.tif`)
-   11. 上海主城区蓝绿空间要素面积(`rsh_main_green_area.tif`)
+   1. 上海主城区ndvi(`rsh_main_ndvi.tif`) ok
+   2. 上海主城区5m乘5m蓝绿空间类型(`rsh_main_green_type.tif`) ok
+   3. 上海主城区居民人口密度(`rsh_main_pop.tif`) ok
+   4. 上海主城区居民男性人口密度(`rsh_main_male.tif`) ok
+   5. 上海主城区居民女性人口密度(`rsh_main_female.tif`) ok
+   6. 上海主城区居民外来人口密度(`rsh_main_for.tif`) ok 
+   7. 上海主城区居民0-14岁人口密度(`rsh_main_14.tif`) ok
+   8. 上海主城区居民15-64岁人口密度(`rsh_main_64.tif`) ok
+   9. 上海主城区居民65岁以上人口密度(`rsh_main_65plus.tif`) ok
+   10. 上海主城区房价(`rsh_main_price.tif`) ok
+   11. 上海主城区蓝绿空间要素面积(`rsh_main_green_area.tif`) ok
 
 ## 处理流程
 ### 1. 创建格网分析单元
