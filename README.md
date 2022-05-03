@@ -43,7 +43,7 @@
          4. `象元高度`:5
          5. `象元宽度`:5
          6. 选择输出标注点`sh_main_grid_point`
-   2. `sh_main_grid_point`利用工具`按位置选择图层`提取需求区(居民区)要素,`demand_point`
+   2. `sh_main_grid_point`利用工具`按位置选择图层`提取需求区(居民区)要素,`demand_point`(有些建筑没有点, 宝山区那块没被算进去)
       1. 输入要素`sh_main_grid_point`
       2. 关系`INTERSECT`
       3. 选择要素`sh_main_building`
@@ -72,40 +72,48 @@
    4. 至此,我们完成格点数据的分析准备,下一步进行需求与供给的计算
 ### 2. 计算每个网格的供给与需求
    1. **供给的区域是所有包含蓝绿空间的网格**
-      1. 处理每个`supply_point_SpatialJoin`要素到最近水体`sh_main_lucc_water`的距离
+      1. 处理每个`supply_point_SpatialJoin`要素到最近水体`sh_main_lucc_water`的距离`NEAR_DIST`
          1. `邻近`
             1. 输入要素:`supply_point_SpatialJoin`
             2. 邻近要素:`sh_main_lucc_water`
             3. 搜索半径:3000m (大于需要计算的2000m)
             4. 其余默认
       2. 计算每个`supply_point_SpatialJoin`ndvi
-         1. 
-      3. 导出`supply_point_SpatialJoin`属性表`supply_point.csv`
+         1. `值提取至点`
+            1. 输入点要素:`supply_point_SpatialJoin`
+            2. 输入栅格:`rsh_main_ndvi`
+            3. 输出点要素:`Extract_supply_1`
+            4. 其余参数默认
+      3. 导出`Extract_supply_1`属性表`supply_point.csv`
+   
+      4. 供给值计算(`pandas`)
+         1. 字段处理
+            1. `S_CLASS`: 绿地类型标识 -> `green_code`
+            2. `NAME`: 绿地类型名称 -> `green_name`
+            3. `行政区`: 行政区名称 -> `district`
+            4. `supply_id`: 要素唯一标识
+            5. `NEAR_DIST`: 要素至水体的距离 -> `water_dist`
+            6. `RASTERVALU`: NDVI -> `ndvi` (199135个缺失值,利用该绿地类型的ndvi均值进行填充)
+            7. `AREA`: 绿地面积 -> `area`
+         2. 数据清洗
 
-
-
-      4. 供给值计算
-         1. 导出`sh_main_grid`属性表`sh_main_grid_attr`,利用pandas操作该属性表,计算供给值
-            1. 处理的字段包括`id`, `is_supply`(0, 1), `green_area`(平方米), `green_type`(1-5),`ndvi`(-1-1),`water_distance`(0-99999)
-            2. 0-1标准化`green_area`,得到`green_area_std`
-            3. 0-1标准化`ndvi`,得到`ndvi_std`
-            4. 处理`green_type`, 分别附上权重`green_type_weight`
-            5. `water_distance`>1000等于9999999,用logistic函数映射得到字段`water_distance_std`(0-1)
-         2. `ces_supply` = (`green_area_std` + `ndvi`)*`green_type_weight` + `water_distance_std`*0.2
+            1. 0-1标准化`green_area`,得到`green_area_std`
+            2.  0-1标准化`ndvi`,得到`ndvi_std`
+            3.  处理`green_type`, 分别附上权重`green_type_weight`
+            4.  `water_distance`>1000等于9999999,用logistic函数映射得到字段`water_distance_std`(0-1)
+         3. `ces_supply` = (`green_area_std` + `ndvi`)*`green_type_weight` + `water_distance_std`*0.2
          
    2. **需求的区域是所有包含居民区的网格**
-      1. 处理每个`demand_point_SpatialJoin`要素到最近绿地`supply_point_SpatialJoin`的距离
+      1. 处理每个`demand_point_SpatialJoin`要素到最近绿地`supply_point_SpatialJoin`的距离`NEAR_DIST`
          1. `邻近`
             1. 输入要素:`demand_point_SpatialJoin`
             2. 邻近要素:`supply_point_SpatialJoin`
             3. 搜索半径:None
             4. 其余默认
-      2. 为`sh_main_grid`添加字段`is_demand`
-         1. 如果`sh_main_grid`与`sh_main_building`相交,则为1,否则为0
-      3. 计算每个网格中的人口与房价信息
-         1. 利用`sh_main_grid`与`rsh_main_pop.tif`计算每个网格内的平均人口密度字段`pop_den`,将平均人口密度*网格面积,得到人口数量字段`pop`
-         2. 同上,计算男性`male`,女性`female`,外来`for`,不同年龄段`14minus`, `64minus`, `65plus`的人口数量
-         3. 利用`sh_main_grid`与`rsh_main_price.tif`计算每个网格内的平均房价,得到平均房价字段`price`
+      2. 导出`demand_point_SpatialJoin`属性表`demand_point.csv`
+      3. 需求值计算
+         1. 字段处理
+            1. 
       4. 建立`cross tabulation`计算需求
          1. 计算`sh_main_grid`每个需求网格到最近的`sh_main_green`要素的距离,得到字段`ces_distance`
          2. `sh_main_grid`每个需求网格的人口密度,即字段`pop_den`
