@@ -34,23 +34,57 @@
    11. 上海主城区蓝绿空间要素面积(`rsh_main_green_area.tif`) ok
 
 ## 处理流程
-### 1. 创建格网分析单元
+### 1. 创建格网分析单元 
    1. 市中心面(`sh_main`)转换成5m乘5m格网(`sh_main_grid`)
-   2. 市中心格网(`sh_main_grid`)添加字段:`id` 作为每个格网的唯一标识
-   3. 市中心格网(`sh_main_grid`)添加字段:`area` 作为每个格网的面积
-   4. 市中心格网(`sh_main_grid`)转换成点(`sh_main_grid_point`) __(用于点转栅格)__
+      1. 对`sh_main`使用`创建渔网`工具
+         1.创建文件地理数据库`test.mdb` (防止渔网过大的情况超过shp容量限制)
+         2. `输出要素类`:`test.mdb/sh_main_grid`
+         3. `模版范围`:`sh_main_grid`
+         4. `象元高度`:5
+         5. `象元宽度`:5
+         6. 选择输出标注点`sh_main_grid_point`
+   2. `sh_main_grid_point`利用工具`按位置选择图层`提取需求区(居民区)要素,`demand_point`
+      1. 输入要素`sh_main_grid_point`
+      2. 关系`INTERSECT`
+      3. 选择要素`sh_main_building`
+      4. 其余参数默认
+      5. 导出选择的要素
+         1. 输出名称`demand_point` (3,425,100个)
+      6. 将`demand_point`与`sh_main_building_cens`进行`空间连接`提取人口相关的属性信息
+         1. 目标要素:`demand_point`
+         2. 连接要素:`sh_main_building_ces`
+         3. 输出要素类:`demand_point_SpatialJoin`
+         4. 为`demand_point_SpatialJoin`添加字段`demand_id`
+            1. 计算字段`demand_id`=`OBJECTID`
+   3. `sh_main_grid_point`利用工具`按位置选择图层`提取供给区(绿地)要素`supply_point`
+      1. 输入要素`sh_main_grid_point`
+      2. 关系`INTERSECT`
+      3. 选择要素`sh_main_green`
+      4. 其余参数默认
+      5. 导出选择的要素
+         1. 输出名称`supply_point` (2,748,225个)
+      6. 将`supply_point`与`sh_main_green`进行`空间连接`提取绿地相关的属性信息
+         1. 目标要素:`supply_point`
+         2. 连接要素:`sh_main_green`
+         3. 输出要素类:`supply_point_SpatialJoin`
+         4. 为`supply_point_SpatialJoin`添加字段`demand_id`
+            1. 计算字段`supply_id`=`OBJECTID`
+   4. 至此,我们完成格点数据的分析准备,下一步进行需求与供给的计算
 ### 2. 计算每个网格的供给与需求
    1. **供给的区域是所有包含蓝绿空间的网格**
-      1. 为`sh_main_grid`添加字段`is_supply`
-         1. 如果`sh_main_grid`与`sh_main_green`相交,则为1,否则为0
-      2. 计算每个网格的蓝绿空间面积
-         1. 利用`sh_main_grid`得到每个网格内`rsh_main_green_area.tif`中各个绿地类型的面积,添加到字段`green_area`
-         2. 利用`sh_main_grid`得到每个网格内`rsh_main_green_type.tif`的类型,添加到字段`green_type`
-      3. 计算每个网格中ndvi的均值
-         1. 利用`sh_main_grid`算出每个网格内`rsh_main_ndvi`的平均值,添加到字段`ndvi`
-      4. 计算水体指标
-         1. 计算`sh_main_grid`中每个网格与最近的水体的距离`sh_main_lucc_water`添加到字段`water_distance`
-      5. 供给值计算
+      1. 处理每个`supply_point_SpatialJoin`要素到最近水体`sh_main_lucc_water`的距离
+         1. `邻近`
+            1. 输入要素:`supply_point_SpatialJoin`
+            2. 邻近要素:`sh_main_lucc_water`
+            3. 搜索半径:3000m (大于需要计算的2000m)
+            4. 其余默认
+      2. 计算每个`supply_point_SpatialJoin`ndvi
+         1. 
+      3. 导出`supply_point_SpatialJoin`属性表`supply_point.csv`
+
+
+
+      4. 供给值计算
          1. 导出`sh_main_grid`属性表`sh_main_grid_attr`,利用pandas操作该属性表,计算供给值
             1. 处理的字段包括`id`, `is_supply`(0, 1), `green_area`(平方米), `green_type`(1-5),`ndvi`(-1-1),`water_distance`(0-99999)
             2. 0-1标准化`green_area`,得到`green_area_std`
@@ -60,19 +94,25 @@
          2. `ces_supply` = (`green_area_std` + `ndvi`)*`green_type_weight` + `water_distance_std`*0.2
          
    2. **需求的区域是所有包含居民区的网格**
-      1. 为`sh_main_grid`添加字段`is_demand`
+      1. 处理每个`demand_point_SpatialJoin`要素到最近绿地`supply_point_SpatialJoin`的距离
+         1. `邻近`
+            1. 输入要素:`demand_point_SpatialJoin`
+            2. 邻近要素:`supply_point_SpatialJoin`
+            3. 搜索半径:None
+            4. 其余默认
+      2. 为`sh_main_grid`添加字段`is_demand`
          1. 如果`sh_main_grid`与`sh_main_building`相交,则为1,否则为0
-      2. 计算每个网格中的人口与房价信息
+      3. 计算每个网格中的人口与房价信息
          1. 利用`sh_main_grid`与`rsh_main_pop.tif`计算每个网格内的平均人口密度字段`pop_den`,将平均人口密度*网格面积,得到人口数量字段`pop`
          2. 同上,计算男性`male`,女性`female`,外来`for`,不同年龄段`14minus`, `64minus`, `65plus`的人口数量
          3. 利用`sh_main_grid`与`rsh_main_price.tif`计算每个网格内的平均房价,得到平均房价字段`price`
-      3. 建立`cross tabulation`计算需求
+      4. 建立`cross tabulation`计算需求
          1. 计算`sh_main_grid`每个需求网格到最近的`sh_main_green`要素的距离,得到字段`ces_distance`
          2. `sh_main_grid`每个需求网格的人口密度,即字段`pop_den`
          3. 导出`sh_main_grid`属性表`sh_main_grid_attr`
          4. 在属性表中进行判断,`pop_den`,`ces_distance`分别位于哪个区间段,赋分0-5,得到字段`ces_demand_raw`
          5. 标准化`ces_demand_raw`,形成字段`ces_demand_std`
-      4. 利用`ces_demand_std`输出ces demand地图
+      5. 利用`ces_demand_std`输出ces demand地图
 
 ### 3. 计算供需匹配
    1. 
