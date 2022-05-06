@@ -113,13 +113,16 @@
       2. 导出`demand_point_SpatialJoin`属性表`demand_point.csv`
       3. 需求值计算
          1. 字段处理
-            1. 
+            1. 密度,距离两个字段
+            2. 属性表
       4. 建立`cross tabulation`计算需求
-         1. 计算`sh_main_grid`每个需求网格到最近的`sh_main_green`要素的距离,得到字段`ces_distance`
-         2. `sh_main_grid`每个需求网格的人口密度,即字段`pop_den`
-         3. 导出`sh_main_grid`属性表`sh_main_grid_attr`
-         4. 在属性表中进行判断,`pop_den`,`ces_distance`分别位于哪个区间段,赋分0-5,得到字段`ces_demand_raw`
-         5. 标准化`ces_demand_raw`,形成字段`ces_demand_std`
+         1. 将````两个字段进行最大最小值标准化
+         2. 根据如下交叉表设置cal函数
+         3. 将demandvalue该值添加到属性表中
+         4. `sh_main_grid`每个需求网格的人口密度,即字段`pop_den`
+         5. 导出`sh_main_grid`属性表`sh_main_grid_attr`
+         6. 在属性表中进行判断,`pop_den`,`ces_distance`分别位于哪个区间段,赋分0-5,得到字段`ces_demand_raw`
+         7. 标准化`ces_demand_raw`,形成字段`ces_demand_std`
       5. 利用`ces_demand_std`输出ces demand地图
 
 ### 3. 计算供需匹配
