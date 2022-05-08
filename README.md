@@ -83,7 +83,7 @@
             1. 输入点要素:`supply_point_SpatialJoin`
             2. 输入栅格:`rsh_main_ndvi`
             3. 输出点要素:`Extract_supply_1`
-            4. 其余参数默认
+            4. 其余参数默认.
       3. 导出`Extract_supply_1`属性表`supply_point.csv`
    
       4. 供给值计算(`pandas`)
